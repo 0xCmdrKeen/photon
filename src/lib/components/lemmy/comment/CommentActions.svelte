@@ -21,11 +21,14 @@
   } from '$lib/components/lemmy/moderation/moderation.js'
   import CommentModerationMenu from '$lib/components/lemmy/moderation/CommentModerationMenu.svelte'
   import { profile } from '$lib/auth.js'
+  import { page } from '$app/stores'
   import { deleteItem, save } from '$lib/lemmy/contentview.js'
   import { Button, Menu, MenuButton, MenuDivider } from 'mono-svelte'
+  import { getCommentParentId } from './comments';
 
   export let comment: CommentView
   export let replying: boolean = false
+  export let context: boolean = false
 
   const dispatcher = createEventDispatcher<{ edit: CommentView }>()
 
@@ -48,6 +51,16 @@
     <Icon src={ArrowUturnLeft} width={14} height={14} mini />
     <span class="text-xs">Reply</span>
   </Button>
+  {#if $page.route.id == '/inbox' && getCommentParentId(comment.comment)}
+    <Button
+      size="sm"
+      color="tertiary"
+      class="text-slate-600 dark:text-zinc-400"
+      on:click={() => (context = !context)}
+    >
+      <span class="text-xs">{context ? "Hide" : "Show"} Context</span>
+    </Button>
+  {/if}
   {#if $profile?.user && (amMod($profile?.user, comment.community) || isAdmin($profile.user))}
     <CommentModerationMenu bind:item={comment} />
   {/if}

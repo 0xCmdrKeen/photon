@@ -27,6 +27,7 @@
 
   export let open = true
   export let replying = false
+  export let context = false
 
   let editing = false
   let newComment = node.comment_view.comment.content
@@ -158,6 +159,7 @@
         <div class="flex flex-row gap-2 items-center">
           <CommentActions
             bind:comment={node.comment_view}
+            bind:context
             bind:replying
             on:edit={() => (editing = true)}
           />

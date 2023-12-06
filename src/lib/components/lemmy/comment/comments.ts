@@ -7,7 +7,7 @@ export interface CommentNodeI {
   loading?: boolean
 }
 
-function getCommentParentId(comment?: Comment): number | undefined {
+export function getCommentParentId(comment?: Comment): number | undefined {
   const split = comment?.path.split('.')
   // remove the 0
   split?.shift()

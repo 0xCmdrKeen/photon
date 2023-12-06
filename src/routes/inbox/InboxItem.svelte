@@ -4,7 +4,7 @@
   import { getClient } from '$lib/lemmy.js'
   import { profile } from '$lib/auth.js'
   import { Check, Icon } from 'svelte-hero-icons'
-  import { Material } from 'mono-svelte'
+  import { Material, Spinner } from 'mono-svelte'
   import PostMeta from '$lib/components/lemmy/post/PostMeta.svelte'
   import SectionTitle from '$lib/components/ui/SectionTitle.svelte'
   import { Button } from 'mono-svelte'
@@ -13,12 +13,15 @@
   import type { InboxItem } from '$lib/lemmy/inbox.js'
   import PrivateMessage from '$lib/components/lemmy/inbox/PrivateMessage.svelte'
   import PrivateMessageModal from '$lib/components/lemmy/modal/PrivateMessageModal.svelte'
+  import Markdown from '$lib/components/markdown/Markdown.svelte'
+  import { getCommentParentId } from '$lib/components/lemmy/comment/comments';
 
   export let item: InboxItem
 
   let replying = false
   let reply = ''
   let loading = false
+  let context = false
 
   async function markAsRead(isRead: boolean) {
     if (!$profile?.jwt) return
@@ -78,7 +81,7 @@
         Reply
       {/if}
     </SectionTitle>
-    {#if item.type != 'private_message' && $profile?.user && item.item.post.creator_id != $profile.user.local_user_view.person.id}
+    {#if item.type != 'private_message' && $profile?.user && context}
       <div class="flex flex-row text-xs items-center gap-2">
         <div
           class="border-t w-8 rounded-tl h-2 border-l ml-2 border-zinc-700"
@@ -92,6 +95,17 @@
         </div>
       </div>
     {/if}
+
+    {#if item.type == 'comment_reply' && context}
+      {#await getClient().getComment({ id: getCommentParentId(item.item.comment)})}
+        <Spinner width={32} />
+      {:then comment}
+        <div class="max-w-full mb-4 text-sm">
+          <Markdown source={comment.comment_view.comment.content} />
+        </div>
+      {/await}
+    {/if}
+
     {#if item.type == 'private_message'}
       <PrivateMessage message={item.item} />
     {:else}
@@ -99,6 +113,7 @@
         postId={item.item.post.id}
         node={{ children: [], comment_view: item.item, depth: 1 }}
         replying={false}
+        bind:context
         class="!p-0"
       />
     {/if}
